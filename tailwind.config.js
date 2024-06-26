@@ -11,6 +11,7 @@ module.exports = {
         custom: {
           blue: '#39A7FF',
           paleBlue: '#7195A9',
+          darkBlue: '#246bA4',
         },
       },
     },

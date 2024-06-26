@@ -4,9 +4,12 @@ import Svg, { SvgProps, Path, G, Defs, ClipPath } from 'react-native-svg';
 interface ColorIconProps {
   color?: string;
 }
+interface BookmarkProps extends SvgProps {
+  color: string;
+}
 
-export const Bookmark = ({ color }: ColorIconProps) => (
-  <Svg fill="none" width={32} height={32}>
+export const Bookmark = ({ color, ...props }: BookmarkProps) => (
+  <Svg fill="none" viewBox="0 0 32 32" width={32} height={32} {...props}>
     <Path
       stroke={color}
       strokeLinecap="round"

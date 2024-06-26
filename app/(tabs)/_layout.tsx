@@ -1,7 +1,5 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import {
   Bookmark,
   HandDoa,
@@ -56,6 +54,13 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <Bookmark color={focused ? '#246ba4' : '#3C495E'} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="detail"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' },
         }}
       />
     </Tabs>
