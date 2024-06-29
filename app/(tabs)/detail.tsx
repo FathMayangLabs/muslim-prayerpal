@@ -4,18 +4,94 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { getSurahDetails } from '@/utils/utility';
-import { Ayat, EachSurah } from '@/constants/types';
+import { Ayat, AyatAudio, EachSurah } from '@/constants/types';
 import { LinearGradient } from 'expo-linear-gradient';
 import QuranIcon from '@/assets/icons/QuranIcon';
 import BismillahImg from '@/assets/images/Bismillah';
 import Taawudz from '@/assets/images/Taawudz';
 import { Feather } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
+import Slider from '@react-native-community/slider';
+
+const AyatItem = ({
+  item,
+  audioUrls,
+}: {
+  item: Ayat;
+  audioUrls: AyatAudio;
+}) => {
+  const [soundObject, setSoundObject] = useState<Audio.Sound | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  useEffect(() => {
+    return soundObject
+      ? () => {
+          soundObject.unloadAsync();
+        }
+      : undefined;
+  }, [soundObject]);
+
+  const playAudio = async (audioUrl: string) => {
+    if (soundObject) {
+      await soundObject.unloadAsync();
+      setSoundObject(null);
+    }
+    const sound = new Audio.Sound();
+    await sound.loadAsync({ uri: audioUrl });
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (status.isLoaded) {
+        setProgress(status.positionMillis);
+        setDuration(status.durationMillis ?? 0);
+      }
+    });
+    setSoundObject(sound);
+    await sound.playAsync();
+  };
+
+  const handleSeek = async (value: number) => {
+    if (soundObject) {
+      await soundObject.setPositionAsync(value);
+    }
+  };
+
+  return (
+    <>
+      <View className="flex-row justify-between mb-5 p-2 px-4 rounded-xl bg-gray-100">
+        <View className="items-center justify-center bg-custom-blue rounded-full w-9 h-9">
+          <Text className="text-white font-semibold">{item.nomorAyat}</Text>
+        </View>
+        <View className={`${progress === duration ? 'hidden opacity-0' : ''}`}>
+          <Slider
+            style={{ width: 200, height: 40 }}
+            minimumValue={0}
+            maximumValue={duration}
+            value={progress}
+            onSlidingComplete={handleSeek}
+            minimumTrackTintColor="#39A7FF"
+            maximumTrackTintColor="#000000"
+          />
+        </View>
+        <View className="flex-row items-center justify-center">
+          <TouchableOpacity
+            onPress={() => playAudio(audioUrls[item.nomorAyat.toString()])}
+          >
+            <Feather name="play" size={28} color="#39A7FF" />
+          </TouchableOpacity>
+          <MaterialIcons name="bookmark-outline" size={28} color="#39A7FF" />
+        </View>
+      </View>
+      <Text className="text-2xl mb-5">{item.teksArab}</Text>
+    </>
+  );
+};
 
 const Detail = () => {
   const { number, nama, turun, jumlah } = useLocalSearchParams();
   const [surahData, setSurahData] = useState<EachSurah | null>(null);
   const [ayat, setAyat] = useState<Ayat[]>([]);
+  const [audioUrls, setAudioUrls] = useState<AyatAudio>({});
   const router = useRouter();
 
   useEffect(() => {
@@ -24,6 +100,11 @@ const Detail = () => {
         const data = await getSurahDetails(number);
         setSurahData(data);
         setAyat(data.ayat);
+        const audioUrls: AyatAudio = {};
+        data.ayat.forEach((item) => {
+          audioUrls[item.nomorAyat.toString()] = item.audio['02']; // Assuming you want the first audio version
+        });
+        setAudioUrls(audioUrls);
       } catch (error) {
         console.error('Error fetching surah data:', error);
       }
@@ -77,24 +158,7 @@ const Detail = () => {
           data={ayat}
           keyExtractor={(item) => String(item.nomorAyat)}
           renderItem={({ item }) => (
-            <>
-              <View className="flex-row justify-between mb-5 p-2 px-4 rounded-xl bg-gray-100">
-                <View className="items-center justify-center bg-custom-blue rounded-full w-9 h-9">
-                  <Text className="text-white font-semibold">
-                    {item.nomorAyat}
-                  </Text>
-                </View>
-                <View className="flex-row justify-center items-center gap-x-2">
-                  <Feather name="play" size={28} color="#39A7FF" />
-                  <MaterialIcons
-                    name="bookmark-outline"
-                    size={28}
-                    color="#39A7FF"
-                  />
-                </View>
-              </View>
-              <Text className="text-xl">{item.teksArab}</Text>
-            </>
+            <AyatItem item={item} audioUrls={audioUrls} />
           )}
         />
       </SafeAreaView>
