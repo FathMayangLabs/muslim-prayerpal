@@ -9,6 +9,7 @@ import { getAllSurah } from '@/utils/utility';
 import MuslimIcon from '@/assets/icons/MuslimIcon';
 import { Surah } from '@/constants/types';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ItemList = memo(({ item }: { item: Surah }) => {
   const router = useRouter();
@@ -16,7 +17,7 @@ const ItemList = memo(({ item }: { item: Surah }) => {
     <TouchableOpacity
       onPress={() =>
         router.push(
-          `/detail?number=${item.nomor}&nama=${item.namaLatin}&turun=${item.tempatTurun}&jumlah=${item.jumlahAyat}`,
+          `/detail?number=${item.nomor}&nama=${item.namaLatin}&turun=${item.tempatTurun}&jumlah=${item.jumlahAyat}&arabic=${item.nama}`,
         )
       }
       className="justify-between flex-row"
@@ -40,7 +41,7 @@ const ItemList = memo(({ item }: { item: Surah }) => {
   );
 });
 
-const Home = () => {
+export default function Home() {
   const [surahData, setSurahData] = useState<Surah[] | null>(null);
 
   useEffect(() => {
@@ -66,7 +67,7 @@ const Home = () => {
         <Text className="text-custom-paleBlue font-medium text-base">
           Asslamualaikum
         </Text>
-        <Text className="mt-1 font-semibold text-3xl">Fath Zulfa Ali</Text>
+        <Text className="mt-1 font-semibold text-3xl">Fath Zulafa Ali</Text>
       </View>
       <LinearGradient
         colors={['transparent', '#39A7FF']}
@@ -107,6 +108,4 @@ const Home = () => {
       />
     </SafeAreaView>
   );
-};
-
-export default Home;
+}

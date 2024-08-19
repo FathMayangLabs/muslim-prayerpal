@@ -11,7 +11,7 @@ import BismillahImg from '@/assets/images/Bismillah';
 import Taawudz from '@/assets/images/Taawudz';
 import { Feather } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
+import { Audio, AVPlaybackStatus, AVPlaybackStatusSuccess } from 'expo-av';
 import Slider from '@react-native-community/slider';
 
 const AyatItem = ({
@@ -24,6 +24,7 @@ const AyatItem = ({
   const [soundObject, setSoundObject] = useState<Audio.Sound | null>(null);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     return soundObject
@@ -40,10 +41,12 @@ const AyatItem = ({
     }
     const sound = new Audio.Sound();
     await sound.loadAsync({ uri: audioUrl });
-    sound.setOnPlaybackStatusUpdate((status) => {
+    sound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
       if (status.isLoaded) {
-        setProgress(status.positionMillis);
-        setDuration(status.durationMillis ?? 0);
+        const playbackStatus = status as AVPlaybackStatusSuccess;
+        setProgress(playbackStatus.positionMillis);
+        setDuration(playbackStatus.durationMillis ?? 0);
+        setIsPlaying(playbackStatus.isPlaying);
       }
     });
     setSoundObject(sound);
@@ -53,6 +56,25 @@ const AyatItem = ({
   const handleSeek = async (value: number) => {
     if (soundObject) {
       await soundObject.setPositionAsync(value);
+    }
+  };
+
+  const togglePlayPause = async (audioUrl: string) => {
+    if (soundObject) {
+      const status = await soundObject.getStatusAsync();
+      if (status.isLoaded) {
+        const playbackStatus = status as AVPlaybackStatusSuccess;
+        if (playbackStatus.isPlaying) {
+          await soundObject.pauseAsync();
+          setIsPlaying(false);
+        } else {
+          await soundObject.playAsync();
+          setIsPlaying(true);
+        }
+      }
+    } else {
+      playAudio(audioUrl);
+      setIsPlaying(true);
     }
   };
 
@@ -75,9 +97,15 @@ const AyatItem = ({
         </View>
         <View className="flex-row items-center justify-center">
           <TouchableOpacity
-            onPress={() => playAudio(audioUrls[item.nomorAyat.toString()])}
+            onPress={() =>
+              togglePlayPause(audioUrls[item.nomorAyat.toString()])
+            }
           >
-            <Feather name="play" size={28} color="#39A7FF" />
+            <Feather
+              name={isPlaying ? 'pause' : 'play'}
+              size={28}
+              color="#39A7FF"
+            />
           </TouchableOpacity>
           <MaterialIcons name="bookmark-outline" size={28} color="#39A7FF" />
         </View>
@@ -88,7 +116,7 @@ const AyatItem = ({
 };
 
 const Detail = () => {
-  const { number, nama, turun, jumlah } = useLocalSearchParams();
+  const { number, nama, turun, jumlah, arabic } = useLocalSearchParams();
   const [surahData, setSurahData] = useState<EachSurah | null>(null);
   const [ayat, setAyat] = useState<Ayat[]>([]);
   const [audioUrls, setAudioUrls] = useState<AyatAudio>({});
@@ -112,6 +140,37 @@ const Detail = () => {
 
     fetchData();
   }, [number]);
+
+  const renderHeader = () => (
+    <LinearGradient
+      colors={['transparent', '#39A7FF']}
+      start={{ x: -0.9, y: 0 }}
+      end={{ x: 0.6, y: 1 }}
+      className=" mb-6 p-5 rounded-2xl shadow-2xl items-center overflow-hidden"
+    >
+      <Text className="mt-2 font-medium text-4xl text-white">{arabic}</Text>
+      <Text className="mt-2 font-light text-base text-white">
+        {nama} - {surahData?.arti}
+      </Text>
+      <View>
+        <View className="absolute -top-20 -left-16 opacity-10">
+          <QuranIcon width={350} height={350} />
+        </View>
+      </View>
+      <View className="my-5 w-64 h-[1] bg-white opacity-60" />
+      <Text className="mb-4 font-normal text-white">
+        {turun?.toString().toUpperCase()} ◦ {jumlah} SURAT
+      </Text>
+
+      {/* Surat At Taubah tidak menggunakan bismillah */}
+      {parseInt(String(surahData?.nomor), 10) === 9 ? (
+        <Taawudz width={350} height={88} />
+      ) : (
+        <BismillahImg width={214 + 40} height={48 + 40} />
+      )}
+    </LinearGradient>
+  );
+
   return (
     <>
       <Stack.Screen
@@ -126,37 +185,10 @@ const Detail = () => {
         }}
       />
       <SafeAreaView className="flex-1 px-6 bg-white">
-        <LinearGradient
-          colors={['transparent', '#39A7FF']}
-          start={{ x: -0.9, y: 0 }}
-          end={{ x: 0.6, y: 1 }}
-          className=" mb-6 p-5 rounded-2xl shadow-2xl items-center overflow-hidden"
-        >
-          <Text className="mt-2 font-medium text-3xl text-white">{nama}</Text>
-          <Text className="mt-2 font-light text-base text-white">
-            {surahData?.arti}
-          </Text>
-          <View>
-            <View className="absolute -top-20 -left-16 opacity-10">
-              <QuranIcon width={350} height={350} />
-            </View>
-          </View>
-          <View className="my-5 w-64 h-[1] bg-white opacity-60" />
-          <Text className="mb-4 font-normal text-white">
-            {turun?.toString().toUpperCase()} ◦ {jumlah} SURAT
-          </Text>
-
-          {/* Surat At Taubah tidak menggunakan bismillah */}
-          {parseInt(String(surahData?.nomor), 10) === 9 ? (
-            <Taawudz width={350} height={88} />
-          ) : (
-            <BismillahImg width={214 + 40} height={48 + 40} />
-          )}
-        </LinearGradient>
-
         <FlatList
           data={ayat}
           keyExtractor={(item) => String(item.nomorAyat)}
+          ListHeaderComponent={renderHeader}
           renderItem={({ item }) => (
             <AyatItem item={item} audioUrls={audioUrls} />
           )}

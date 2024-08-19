@@ -56,24 +56,3 @@ export const getSurahDetails = async (
     throw error;
   }
 };
-
-// Save data
-export const saveData = async (key: string, value: string) => {
-  try {
-    await AsyncStorage.setItem(key, value);
-  } catch (error) {
-    console.error('Error saving data', error);
-  }
-};
-
-// Load data
-export const loadData = async (key: string) => {
-  try {
-    const value = await AsyncStorage.getItem(key);
-    if (value !== null) {
-      return value;
-    }
-  } catch (error) {
-    console.error('Error loading data', error);
-  }
-};
