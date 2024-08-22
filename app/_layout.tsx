@@ -8,12 +8,11 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
-
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PaperProvider } from 'react-native-paper';
 import { loadData } from '@/utils/loadData';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -31,11 +30,16 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
 
+    // const deleteAll = async () => {
+    //   AsyncStorage.removeItem('username');
+    // };
+
     const checkUsername = async () => {
       const user = await loadData('username');
       setIsLoggedIn(!!user);
     };
 
+    // deleteAll();
     checkUsername();
   }, [loaded]);
 
@@ -50,12 +54,12 @@ export default function RootLayout() {
           value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
         >
           <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             {isLoggedIn ? (
-              <Stack.Screen name="+not-found" />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             ) : (
-              <Stack.Screen name="intro-screen" />
+              <Stack.Screen name="index" options={{ headerShown: false }} />
             )}
+            <Stack.Screen name="+not-found" />
           </Stack>
         </ThemeProvider>
       </PaperProvider>
