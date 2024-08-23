@@ -18,7 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
@@ -53,9 +53,9 @@ export default function RootLayout() {
         <ThemeProvider
           value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
         >
-          <Stack>
+          <Stack screenOptions={{ headerShown: false }}>
             {isLoggedIn ? (
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" />
             ) : (
               <Stack.Screen name="index" options={{ headerShown: false }} />
             )}

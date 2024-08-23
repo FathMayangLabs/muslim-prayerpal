@@ -92,7 +92,7 @@ export default function Home() {
 
   return (
     <>
-      <StatusBar backgroundColor="#000" />
+      <StatusBar hidden={false} />
       <SafeAreaView className="flex-1 mx-6 mt-6">
         <View className="flex-row justify-between">
           <Text className="text-custom-blue  font-bold text-xl">

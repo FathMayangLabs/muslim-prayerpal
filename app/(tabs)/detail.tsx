@@ -1,6 +1,11 @@
 import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import {
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { getSurahDetails } from '@/utils/utility';
@@ -13,6 +18,8 @@ import { Feather } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Audio, AVPlaybackStatus, AVPlaybackStatusSuccess } from 'expo-av';
 import Slider from '@react-native-community/slider';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import Octicons from '@expo/vector-icons/Octicons';
 
 const AyatItem = ({
   item,
@@ -25,6 +32,7 @@ const AyatItem = ({
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     return soundObject
@@ -78,6 +86,10 @@ const AyatItem = ({
     }
   };
 
+  const toggleExpanded = () => {
+    setExpanded(!expanded);
+  };
+
   return (
     <>
       <View className="flex-row justify-between mb-5 p-2 px-4 rounded-xl bg-gray-100">
@@ -95,7 +107,7 @@ const AyatItem = ({
             maximumTrackTintColor="#000000"
           />
         </View>
-        <View className="flex-row items-center justify-center">
+        <View className="flex-row items-center justify-center gap-x-2">
           <TouchableOpacity
             onPress={() =>
               togglePlayPause(audioUrls[item.nomorAyat.toString()])
@@ -107,10 +119,27 @@ const AyatItem = ({
               color="#39A7FF"
             />
           </TouchableOpacity>
+          <TouchableOpacity onPress={toggleExpanded}>
+            {/* Optional Chevron Icon */}
+            {expanded ? (
+              <FontAwesome6 name="circle-info" size={24} color="#39A7FF" />
+            ) : (
+              <Octicons name="info" size={24} color="#39A7FF" />
+            )}
+          </TouchableOpacity>
           <MaterialIcons name="bookmark-outline" size={28} color="#39A7FF" />
         </View>
       </View>
-      <Text className="text-2xl mb-5">{item.teksArab}</Text>
+      <Text className={`${expanded ? '' : 'mb-5'} text-2xl`}>
+        {item.teksArab}
+      </Text>
+
+      {/* Expandable content */}
+      {expanded && (
+        <Text className="text-gray-700 mb-5">
+          {item.teksIndonesia} {/* Expanded content description */}
+        </Text>
+      )}
     </>
   );
 };
@@ -140,6 +169,16 @@ const Detail = () => {
 
     fetchData();
   }, [number]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        setSurahData(null);
+        setAyat([]);
+        setAudioUrls({});
+      };
+    }, []),
+  );
 
   const renderHeader = () => (
     <LinearGradient

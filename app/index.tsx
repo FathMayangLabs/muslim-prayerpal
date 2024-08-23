@@ -17,9 +17,7 @@ import { NativeStackNavigationProp } from 'react-native-screens/lib/typescript/n
 const backgroundImg = require('@/assets/images/login-background.png');
 
 type RootStackParamList = {
-  'intro-screen': undefined;
   '(tabs)': undefined;
-  '+not-found': undefined;
 };
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, '(tabs)'>;
