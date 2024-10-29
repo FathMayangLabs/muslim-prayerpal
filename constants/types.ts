@@ -42,7 +42,7 @@ export interface EachSurah {
   tempatTurun: string;
   arti: string;
   deskripsi: string;
-  audioFull: AudioFull;
+  audioFull: AudioFullTafseer;
   ayat: Ayat[];
 }
 
@@ -52,3 +52,52 @@ export interface EachSurahApiResponse {
   message: string;
   data: EachSurah;
 }
+
+// Type for Audio URLs
+type AudioFullTafseer = {
+  [key: string]: string;
+};
+
+// Type for Tafsir items
+type TafsirItem = {
+  ayat: number;
+  teks: string;
+};
+
+// Type for Next and Previous Surah
+type SuratReference = {
+  nomor: number;
+  nama: string;
+  namaLatin: string;
+  jumlahAyat: number;
+};
+
+// Main Data type
+interface SurahData {
+  nomor: number;
+  nama: string;
+  namaLatin: string;
+  jumlahAyat: number;
+  tempatTurun: string;
+  arti: string;
+  deskripsi: string;
+  audioFull: AudioFull;
+  tafsir: TafsirItem[];
+  suratSelanjutnya: SuratReference | null;
+  suratSebelumnya: SuratReference | null;
+}
+
+// Full response type
+interface ApiResponseTafseer {
+  code: number;
+  message: string;
+  data: SurahData;
+}
+
+export type {
+  ApiResponseTafseer,
+  SurahData,
+  AudioFullTafseer,
+  TafsirItem,
+  SuratReference,
+};

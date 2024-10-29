@@ -19,39 +19,43 @@ import { useRouter } from 'expo-router';
 import { loadData } from '@/utils/loadData';
 import { StatusBar } from 'expo-status-bar';
 
-const ItemList = memo(({ item }: { item: Surah }) => {
-  const router = useRouter();
-  return (
-    <TouchableOpacity
-      onPress={() =>
-        router.push(
-          `/detail?number=${item.nomor}&nama=${item.namaLatin}&turun=${item.tempatTurun}&jumlah=${item.jumlahAyat}&arabic=${item.nama}`,
-        )
-      }
-      className="justify-between flex-row"
-    >
-      <View className="flex-row mb-4">
-        <Text className="absolute top-[10] left-[5] w-8 text-center">
-          {item.nomor}
-        </Text>
-        <MuslimIcon />
-        <View className="ml-4 flex-col justify-between">
-          <Text className="font-medium text-base">{item.namaLatin}</Text>
-          <Text className="font-medium opacity-40">
-            {item.tempatTurun} ◦ {item.jumlahAyat} SURAT
+const ItemList = memo(
+  ({ item, onSelect }: { item: Surah; onSelect: (name: string) => void }) => {
+    const router = useRouter();
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          onSelect(item.namaLatin);
+          router.push(
+            `/detail?number=${item.nomor}&nama=${item.namaLatin}&turun=${item.tempatTurun}&jumlah=${item.jumlahAyat}&arabic=${item.nama}`,
+          );
+        }}
+        className="justify-between flex-row"
+      >
+        <View className="flex-row mb-4">
+          <Text className="absolute top-[10] left-[5] w-8 text-center">
+            {item.nomor}
           </Text>
+          <MuslimIcon />
+          <View className="ml-4 flex-col justify-between">
+            <Text className="font-medium text-base">{item.namaLatin}</Text>
+            <Text className="font-medium opacity-40">
+              {item.tempatTurun} ◦ {item.jumlahAyat} AYAT
+            </Text>
+          </View>
         </View>
-      </View>
-      <View className="justify-center">
-        <Text className="text-2xl text-custom-darkBlue">{item.nama}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-});
+        <View className="justify-center">
+          <Text className="text-2xl text-custom-darkBlue">{item.nama}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  },
+);
 
 export default function Home() {
   const [surahData, setSurahData] = useState<Surah[] | null>(null);
   const [username, setUsername] = useState<string | undefined>('');
+  const [lastRead, setLastRead] = useState('Al-Fatihah');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -118,11 +122,9 @@ export default function Home() {
               <Text className="text-white ml-2">Terakhir Di Baca</Text>
             </View>
 
-            <Text className="mt-6 font-semibold text-xl text-white">
-              Al-Fatihah
-            </Text>
-            <Text className="mt-2 font-light text-base text-white">
-              Ayat No. 1
+            <Text className="mt-6 font-light text-base text-white">Surah</Text>
+            <Text className="mt-1 font-semibold text-xl text-white">
+              {lastRead}
             </Text>
           </View>
           <View>
@@ -136,7 +138,14 @@ export default function Home() {
           keyExtractor={(item) => item.nomor.toString()}
           initialNumToRender={10}
           maxToRenderPerBatch={10}
-          renderItem={({ item }) => <ItemList item={item} />}
+          renderItem={({ item }) => (
+            <ItemList
+              item={item}
+              onSelect={(selectedItem) => {
+                setLastRead(selectedItem);
+              }}
+            />
+          )}
           getItemLayout={(data, index) => ({
             length: 59,
             offset: 59 * index,

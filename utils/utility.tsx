@@ -43,6 +43,7 @@ export const getSurahDetails = async (
     //   return data;
     // }
 
+    // get a surah
     const response = await axios.get<EachSurahApiResponse>(
       `https://equran.id/api/v2/surat/${id}`,
     );

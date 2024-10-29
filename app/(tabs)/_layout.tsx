@@ -7,6 +7,7 @@ import {
   Quran,
   Shalah,
 } from '@/assets/icons/tab-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 export default function TabLayout() {
   return (
@@ -28,7 +29,11 @@ export default function TabLayout() {
         name="explore"
         options={{
           tabBarIcon: ({ focused }) => (
-            <Lamp color={focused ? '#246ba4' : '#3C495E'} />
+            <MaterialCommunityIcons
+              name="abjad-arabic"
+              size={32}
+              color={focused ? '#246ba4' : '#3C495E'}
+            />
           ),
         }}
       />
