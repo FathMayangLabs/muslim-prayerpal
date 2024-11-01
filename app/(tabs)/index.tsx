@@ -9,7 +9,6 @@ import {
 import React, { memo, useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import QuranIcon from '@/assets/icons/QuranIcon';
-import SearchIcon from '@/assets/icons/SearchIcon';
 import BookIcon from '@/assets/icons/BookIcon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getAllSurah } from '@/utils/utility';
@@ -18,6 +17,7 @@ import { Surah } from '@/constants/types';
 import { useRouter } from 'expo-router';
 import { loadData } from '@/utils/loadData';
 import { StatusBar } from 'expo-status-bar';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 
 const ItemList = memo(
   ({ item, onSelect }: { item: Surah; onSelect: (name: string) => void }) => {
@@ -102,7 +102,7 @@ export default function Home() {
           <Text className="text-custom-blue  font-bold text-xl">
             Islamic App
           </Text>
-          <SearchIcon />
+          <FontAwesome6 name="gear" size={24} color="#7195a9" />
         </View>
         <View className="mt-4">
           <Text className="text-custom-paleBlue font-medium text-base">

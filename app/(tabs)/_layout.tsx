@@ -26,7 +26,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="translate-version"
         options={{
           tabBarIcon: ({ focused }) => (
             <MaterialCommunityIcons
