@@ -49,7 +49,7 @@ const Translation = memo(
 
     return (
       <>
-        <View className="flex items-center justify-center">
+        <View className="flex items-center justify-center mt-4">
           <Text className="font-extrabold text-2xl">
             {surahData?.namaLatin}
           </Text>
@@ -58,19 +58,24 @@ const Translation = memo(
           data={ayat}
           keyExtractor={(item) => item.nomorAyat.toString()}
           renderItem={({ item }) => (
-            <View className="flex flex-col mt-2 max-w-full">
+            <View className="flex flex-col mt-2 overflow-visible">
               <View className="flex flex-row mb-2">
                 <Text className="pr-1 text-lg font-semibold">
                   {item.nomorAyat}.
                 </Text>
-                <Text className="text-lg">{item.teksIndonesia}</Text>
+                <Text className="text-lg flex-shrink">
+                  {item.teksIndonesia}
+                </Text>
               </View>
             </View>
           )}
           initialNumToRender={7}
           maxToRenderPerBatch={10}
           onViewableItemsChanged={onViewableItemsChanged}
-          viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
+          viewabilityConfig={{
+            viewAreaCoveragePercentThreshold: 50,
+            minimumViewTime: 5000,
+          }}
         />
       </>
     );

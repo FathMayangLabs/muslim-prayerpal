@@ -6,14 +6,22 @@ import { getAllSurah } from '@/utils/utility';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { FlatList, SafeAreaView, Text, View, ViewToken } from 'react-native';
+import {
+  FlatList,
+  SafeAreaView,
+  Text,
+  View,
+  ViewToken,
+  TouchableOpacity,
+} from 'react-native';
 
 export default function TabTwoScreen() {
   const [surahData, setSurahData] = useState<Surah[]>([]);
   const [lastRead, setLastRead] = useState<string>('Al-Fatihah');
-  const [lastReadIndex, setLastReadIndex] = useState<number>(0);
+  const [lastReadIndex, setLastReadIndex] = useState<number>(1);
 
-  const lastReadAyat = useRef<number | null>(null); // Ref to hold the last read ayat number
+  const lastReadAyat = useRef<number | null>(null);
+  const flatListRef = useRef<FlatList>(null); // Reference to FlatList
 
   const fetchData = async () => {
     try {
@@ -29,42 +37,8 @@ export default function TabTwoScreen() {
   }, []);
 
   const handleLastReadUpdate = (surahName: string, ayatNumber: number) => {
-    console.log(
-      `Updating last read to Surah: ${surahName}, Ayat: ${ayatNumber}`,
-    );
     setLastRead(surahName);
     setLastReadIndex(ayatNumber);
-  };
-
-  // Updated onViewableItemsChanged function with debugging logs
-  // const onViewableItemsChanged = useRef(
-  //   ({ viewableItems }: { viewableItems: any[] }) => {
-  //     if (viewableItems.length > 0) {
-  //       console.log('viewableItems structure:', viewableItems);
-
-  //       // Check if the mid-view item structure is as expected
-  //       const ayatInView = viewableItems[Math.floor(viewableItems.length / 2)];
-  //       if (ayatInView?.item) {
-  //         const ayatNumber = ayatInView.item.nomorAyat;
-  //         const surahName = ayatInView.item.namaLatin;
-
-  //         console.log('Selected ayatNumber:', ayatNumber);
-  //         console.log('Selected surahName:', surahName);
-
-  //         if (ayatNumber !== lastReadAyat.current) {
-  //           lastReadAyat.current = ayatNumber;
-  //           handleLastReadUpdate(surahName, ayatNumber);
-  //         }
-  //       } else {
-  //         console.warn('Unexpected viewable item structure:', ayatInView);
-  //       }
-  //     }
-  //   },
-  // ).current;
-
-  const trackItem = (surahName: string, ayatNumber: number) => {
-    console.log('Selected ayatNumber:', ayatNumber);
-    console.log('Selected surahName:', surahName);
   };
 
   const onViewableItemsChanged = useCallback(
@@ -74,18 +48,14 @@ export default function TabTwoScreen() {
         const item = visible.item;
 
         if (item && item.nomorAyat && item.namaLatin) {
-          const ayatNumber = item.nomorAyat;
-          const surahName = item.namaLatin;
+          const ayatNumber = item.ayatNumber;
+          const surahName = item.surahName;
 
-          // Call trackItem to log the values
-          trackItem(surahName, ayatNumber);
-
-          // Update last read Ayat and Surah
           handleLastReadUpdate(surahName, ayatNumber);
         } else {
           console.warn(
             'Viewable item does not have the expected structure:',
-            visible.item.namaLatin,
+            visible.item,
           );
         }
       });
@@ -93,33 +63,47 @@ export default function TabTwoScreen() {
     [],
   );
 
+  // Function to scroll to last read Ayat
+  const scrollToLastRead = () => {
+    if (flatListRef.current && lastReadIndex > 0) {
+      flatListRef.current.scrollToIndex({
+        index: lastReadIndex - 1, // Adjust for zero-based indexing
+        animated: true,
+        viewPosition: 0.5, // Center the last read Ayat on screen
+      });
+    }
+  };
+
   return (
     <>
       <StatusBar hidden={false} />
       <SafeAreaView className="flex-1 mx-6 mt-6">
-        <LinearGradient
-          colors={['transparent', '#39A7FF']}
-          start={{ x: -0.9, y: 0 }}
-          end={{ x: 0.6, y: 1 }}
-          className="flex-row my-6 p-5 rounded-2xl justify-between overflow-hidden"
-        >
-          <View>
-            <View className="flex-row">
-              <BookIcon />
-              <Text className="text-white ml-2">Terakhir Di Baca</Text>
+        <TouchableOpacity onPress={scrollToLastRead}>
+          <LinearGradient
+            colors={['transparent', '#39A7FF']}
+            start={{ x: -0.9, y: 0 }}
+            end={{ x: 0.6, y: 1 }}
+            className="flex-row my-6 p-5 rounded-2xl justify-between overflow-hidden"
+          >
+            <View>
+              <View className="flex-row">
+                <BookIcon />
+                <Text className="text-white ml-2">Terakhir Di Baca</Text>
+              </View>
+              <Text className="mt-6 font-light text-base text-white">
+                {lastRead}{' '}
+              </Text>
+              <Text className="mt-1 font-semibold text-xl text-white">
+                Ayat {lastReadIndex}
+              </Text>
             </View>
-            <Text className="mt-6 font-light text-base text-white">
-              {lastRead}{' '}
-            </Text>
-            <Text className="mt-1 font-semibold text-xl text-white">
-              Ayat {lastReadIndex}
-            </Text>
-          </View>
-          <View className="absolute -right-16 opacity-30">
-            <QuranIcon width={200} height={200} />
-          </View>
-        </LinearGradient>
+            <View className="absolute -right-16 opacity-30">
+              <QuranIcon width={200} height={200} />
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
         <FlatList
+          ref={flatListRef} // Attach FlatList ref
           data={surahData}
           keyExtractor={(item) => item.nomor.toString()}
           renderItem={({ item }) => (
@@ -130,10 +114,10 @@ export default function TabTwoScreen() {
           )}
           initialNumToRender={10}
           maxToRenderPerBatch={10}
-          onViewableItemsChanged={onViewableItemsChanged} // Pass the onViewableItemsChanged function
+          onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={{
-            itemVisiblePercentThreshold: 50, // Configure viewability threshold
-            minimumViewTime: 100, // Minimum time an item needs to be visible before considered "viewable"
+            itemVisiblePercentThreshold: 50,
+            minimumViewTime: 3000,
           }}
         />
       </SafeAreaView>

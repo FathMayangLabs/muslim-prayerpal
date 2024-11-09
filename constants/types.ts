@@ -101,3 +101,113 @@ export type {
   TafsirItem,
   SuratReference,
 };
+
+export interface PrayerTimesResponse {
+  code: number;
+  status: string;
+  data: PrayerTimesData;
+}
+
+export interface PrayerTimesData {
+  timings: Timings;
+  date: DateInfo;
+  meta: MetaData;
+}
+
+export interface Timings {
+  Fajr: string;
+  Sunrise: string;
+  Dhuhr: string;
+  Asr: string;
+  Sunset: string;
+  Maghrib: string;
+  Isha: string;
+  Imsak: string;
+  Midnight: string;
+}
+
+export interface DateInfo {
+  readable: string;
+  timestamp: string;
+  gregorian: GregorianDate;
+  hijri: HijriDate;
+}
+
+export interface GregorianDate {
+  date: string;
+  format: string;
+  day: string;
+  weekday: Weekday;
+  month: Month;
+  year: string;
+  designation: Designation;
+}
+
+export interface HijriDate {
+  date: string;
+  format: string;
+  day: string;
+  weekday: Weekday;
+  month: Month;
+  year: string;
+  designation: Designation;
+  holidays?: string[];
+}
+
+export interface Weekday {
+  en: string;
+  ar?: string; // Optional since it's only present in the hijri date
+}
+
+export interface Month {
+  number: number;
+  en: string;
+  ar?: string; // Optional since it's only present in the hijri date
+}
+
+export interface Designation {
+  abbreviated: string;
+  expanded: string;
+}
+
+export interface MetaData {
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  method: Method;
+  latitudeAdjustmentMethod: string;
+  midnightMode: string;
+  school: string;
+  offset: Offset;
+}
+
+export interface Method {
+  id: number;
+  name: string;
+  params: MethodParams;
+}
+
+export interface MethodParams {
+  Fajr: number;
+  Isha: string;
+}
+
+export interface Offset {
+  Imsak: string;
+  Fajr: string;
+  Sunrise: string;
+  Dhuhr: string;
+  Asr: string;
+  Maghrib: string;
+  Sunset: string;
+  Isha: string;
+  Midnight: string;
+}
+
+export interface FivePrayers {
+  Fajr: { name: string; enabled: true; time: string };
+  Dhuhr: { name: string; enabled: true; time: string };
+  Asr: { name: string; enabled: true; time: string };
+  Maghrib: { name: string; enabled: true; time: string };
+  Isha: { name: string; enabled: true; time: string };
+}

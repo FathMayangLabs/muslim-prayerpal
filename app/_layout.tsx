@@ -12,38 +12,38 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
 import { loadData } from '@/utils/loadData';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+// Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isReady, setIsReady] = useState<boolean>(false);
 
   const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
+  const [fontsLoaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
+    const initializeApp = async () => {
+      try {
+        if (!fontsLoaded) return;
 
-    // const deleteAll = async () => {
-    //   AsyncStorage.removeItem('username');
-    // };
-
-    const checkUsername = async () => {
-      const user = await loadData('username');
-      setIsLoggedIn(!!user);
+        const user = await loadData('username');
+        setIsLoggedIn(!!user);
+      } catch (error) {
+        console.error('Error loading data: ', error);
+      } finally {
+        setIsReady(true);
+        SplashScreen.hideAsync();
+      }
     };
 
-    // deleteAll();
-    checkUsername();
-  }, [loaded]);
+    initializeApp();
+  }, [fontsLoaded]);
 
-  if (!loaded) {
+  if (!isReady) {
     return null;
   }
 

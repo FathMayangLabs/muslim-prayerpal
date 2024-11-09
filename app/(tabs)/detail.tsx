@@ -45,12 +45,21 @@ const AyatItem = ({
   }, [soundObject]);
 
   const playAudio = async (audioUrl: string) => {
+    // Stop any existing audio
     if (soundObject) {
       await soundObject.unloadAsync();
       setSoundObject(null);
     }
-    const sound = new Audio.Sound();
-    await sound.loadAsync({ uri: audioUrl });
+
+    // Create a new sound object and load the audio
+    const { sound, status } = await Audio.Sound.createAsync(
+      { uri: audioUrl },
+      { shouldPlay: true },
+    );
+
+    setSoundObject(sound);
+
+    // Set up playback status listener
     sound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
       if (status.isLoaded) {
         const playbackStatus = status as AVPlaybackStatusSuccess;
@@ -59,7 +68,7 @@ const AyatItem = ({
         setIsPlaying(playbackStatus.isPlaying);
       }
     });
-    setSoundObject(sound);
+
     await sound.playAsync();
   };
 
@@ -94,17 +103,15 @@ const AyatItem = ({
         <View className="items-center justify-center bg-custom-blue rounded-full w-9 h-9">
           <Text className="text-white font-semibold">{item.nomorAyat}</Text>
         </View>
-        <View className={`${progress === duration ? 'hidden opacity-0' : ''}`}>
-          <Slider
-            style={{ width: 200, height: 40 }}
-            minimumValue={0}
-            maximumValue={duration}
-            value={progress}
-            onSlidingComplete={handleSeek}
-            minimumTrackTintColor="#39A7FF"
-            maximumTrackTintColor="#000000"
-          />
-        </View>
+        <Slider
+          style={{ width: 200, height: 40 }}
+          minimumValue={0}
+          maximumValue={duration}
+          value={progress}
+          onSlidingComplete={handleSeek}
+          minimumTrackTintColor="#39A7FF"
+          maximumTrackTintColor="#000000"
+        />
         <View className="flex-row items-center justify-center gap-x-2">
           {/* Audio */}
           <TouchableOpacity
@@ -126,15 +133,11 @@ const AyatItem = ({
             nomorAyat={item.nomorAyat}
             namaSurat={namaSurat}
           />
-
-          {/* BookMark */}
-          {/* <MaterialIcons name="bookmark-outline" size={28} color="#39A7FF" /> */}
         </View>
       </View>
       <Text className={` mb-5 text-2xl`}>{item.teksArab}</Text>
 
       {/* Expandable content */}
-
       <Text className="text-gray-700 mb-5">{item.teksIndonesia}</Text>
     </>
   );

@@ -38,7 +38,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="test1"
+        name="prayer-schedule"
         options={{
           tabBarIcon: ({ focused }) => (
             <Shalah color={focused ? '#246ba4' : '#3C495E'} />
