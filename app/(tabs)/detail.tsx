@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, FlatList } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import {
   Stack,
   useFocusEffect,
@@ -20,128 +20,137 @@ import Slider from '@react-native-community/slider';
 import { getTafseer } from '@/utils/getTafseer';
 import TafseerModal from '@/components/detail-screen/TafseerModal';
 
-const AyatItem = ({
-  item,
-  audioUrls,
-  tafseer,
-  namaSurat,
-}: {
-  item: Ayat;
-  audioUrls: AyatAudio;
-  tafseer: TafsirItem[];
-  namaSurat: string | undefined;
-}) => {
-  const [soundObject, setSoundObject] = useState<Audio.Sound | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
+const AyatItem = memo(
+  ({
+    item,
+    audioUrls,
+    tafseer,
+    namaSurat,
+  }: {
+    item: Ayat;
+    audioUrls: AyatAudio;
+    tafseer: TafsirItem[];
+    namaSurat: string | undefined;
+  }) => {
+    const [soundObject, setSoundObject] = useState<Audio.Sound | null>(null);
+    const [progress, setProgress] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(false);
 
-  useEffect(() => {
-    return soundObject
-      ? () => {
-          soundObject.unloadAsync();
-        }
-      : undefined;
-  }, [soundObject]);
+    useEffect(() => {
+      return soundObject
+        ? () => {
+            soundObject.unloadAsync();
+          }
+        : undefined;
+    }, [soundObject]);
 
-  const playAudio = async (audioUrl: string) => {
-    // Stop any existing audio
-    if (soundObject) {
-      await soundObject.unloadAsync();
-      setSoundObject(null);
-    }
-
-    // Create a new sound object and load the audio
-    const { sound, status } = await Audio.Sound.createAsync(
-      { uri: audioUrl },
-      { shouldPlay: true },
-    );
-
-    setSoundObject(sound);
-
-    // Set up playback status listener
-    sound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
-      if (status.isLoaded) {
-        const playbackStatus = status as AVPlaybackStatusSuccess;
-        setProgress(playbackStatus.positionMillis);
-        setDuration(playbackStatus.durationMillis ?? 0);
-        setIsPlaying(playbackStatus.isPlaying);
+    const playAudio = async (audioUrl: string) => {
+      // Stop any existing audio
+      if (soundObject) {
+        await soundObject.unloadAsync();
+        setSoundObject(null);
       }
-    });
 
-    await sound.playAsync();
-  };
+      // Create a new sound object and load the audio
+      const { sound, status } = await Audio.Sound.createAsync(
+        { uri: audioUrl },
+        { shouldPlay: true },
+      );
 
-  const handleSeek = async (value: number) => {
-    if (soundObject) {
-      await soundObject.setPositionAsync(value);
-    }
-  };
+      setSoundObject(sound);
 
-  const togglePlayPause = async (audioUrl: string) => {
-    if (soundObject) {
-      const status = await soundObject.getStatusAsync();
-      if (status.isLoaded) {
-        const playbackStatus = status as AVPlaybackStatusSuccess;
-        if (playbackStatus.isPlaying) {
-          await soundObject.pauseAsync();
-          setIsPlaying(false);
-        } else {
-          await soundObject.playAsync();
-          setIsPlaying(true);
+      // Set up playback status listener
+      sound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
+        if (status.isLoaded) {
+          const playbackStatus = status as AVPlaybackStatusSuccess;
+          setProgress(playbackStatus.positionMillis);
+          setDuration(playbackStatus.durationMillis ?? 0);
+          setIsPlaying(playbackStatus.isPlaying);
         }
-      }
-    } else {
-      playAudio(audioUrl);
-      setIsPlaying(true);
-    }
-  };
+      });
 
-  return (
-    <>
-      <View className="flex-row justify-between mb-5 p-2 px-4 rounded-xl bg-gray-100">
-        <View className="items-center justify-center bg-custom-blue rounded-full w-9 h-9">
-          <Text className="text-white font-semibold">{item.nomorAyat}</Text>
-        </View>
-        <Slider
-          style={{ width: 200, height: 40 }}
-          minimumValue={0}
-          maximumValue={duration}
-          value={progress}
-          onSlidingComplete={handleSeek}
-          minimumTrackTintColor="#39A7FF"
-          maximumTrackTintColor="#000000"
-        />
-        <View className="flex-row items-center justify-center gap-x-2">
-          {/* Audio */}
-          <TouchableOpacity
-            onPress={() =>
-              togglePlayPause(audioUrls[item.nomorAyat.toString()])
-            }
-            className="px-2"
-          >
-            <Feather
-              name={isPlaying ? 'pause' : 'play'}
-              size={28}
-              color="#39A7FF"
+      await sound.playAsync();
+    };
+
+    const handleSeek = async (value: number) => {
+      if (soundObject) {
+        await soundObject.setPositionAsync(value);
+      }
+    };
+
+    const togglePlayPause = async (audioUrl: string) => {
+      if (soundObject) {
+        const status = await soundObject.getStatusAsync();
+        if (status.isLoaded) {
+          const playbackStatus = status as AVPlaybackStatusSuccess;
+          if (playbackStatus.isPlaying) {
+            await soundObject.pauseAsync();
+            setIsPlaying(false);
+          } else {
+            await soundObject.playAsync();
+            setIsPlaying(true);
+          }
+        }
+      } else {
+        playAudio(audioUrl);
+        setIsPlaying(true);
+      }
+    };
+
+    return (
+      <>
+        <View className="flex-row justify-between mb-5 p-2 px-4 rounded-xl bg-gray-100 max-w-full">
+          <View className="items-center justify-center bg-custom-blue rounded-full w-9 h-9">
+            <Text className="text-white font-semibold">{item.nomorAyat}</Text>
+          </View>
+          {isPlaying ? (
+            <>
+              <Slider
+                style={{ width: 200, height: 40 }}
+                minimumValue={0}
+                maximumValue={duration}
+                value={progress}
+                onSlidingComplete={handleSeek}
+                minimumTrackTintColor="#39A7FF"
+                maximumTrackTintColor="#000000"
+              />
+            </>
+          ) : (
+            <></>
+          )}
+
+          <View className="flex-row items-center justify-center gap-x-2">
+            {/* Audio */}
+            <TouchableOpacity
+              onPress={() =>
+                togglePlayPause(audioUrls[item.nomorAyat.toString()])
+              }
+              className="px-2"
+            >
+              <Feather
+                name={isPlaying ? 'pause' : 'play'}
+                size={28}
+                color="#39A7FF"
+              />
+            </TouchableOpacity>
+
+            {/* Tafseer */}
+            <TafseerModal
+              tafseer={tafseer}
+              nomorAyat={item.nomorAyat}
+              namaSurat={namaSurat}
             />
-          </TouchableOpacity>
-
-          {/* Tafseer */}
-          <TafseerModal
-            tafseer={tafseer}
-            nomorAyat={item.nomorAyat}
-            namaSurat={namaSurat}
-          />
+          </View>
         </View>
-      </View>
-      <Text className={` mb-5 text-2xl`}>{item.teksArab}</Text>
+        <Text className={` mb-5 text-2xl`}>{item.teksArab}</Text>
 
-      {/* Expandable content */}
-      <Text className="text-gray-700 mb-5">{item.teksIndonesia}</Text>
-    </>
-  );
-};
+        {/* Expandable content */}
+        <Text className="text-gray-700 mb-5">{item.teksIndonesia}</Text>
+      </>
+    );
+  },
+);
 
 const Detail = () => {
   const { number, nama, turun, jumlah, arabic } = useLocalSearchParams();

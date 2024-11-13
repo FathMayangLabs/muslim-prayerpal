@@ -14,7 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { getAllSurah } from '@/utils/utility';
 import MuslimIcon from '@/assets/icons/MuslimIcon';
 import { Surah } from '@/constants/types';
-import { useRouter } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
 import { loadData } from '@/utils/loadData';
 import { StatusBar } from 'expo-status-bar';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
@@ -56,7 +56,12 @@ export default function Home() {
   const [surahData, setSurahData] = useState<Surah[] | null>(null);
   const [username, setUsername] = useState<string | undefined>('');
   const [lastRead, setLastRead] = useState('Al-Fatihah');
+  const navigation = useNavigation();
 
+  navigation.setOptions({
+    headerBackVisible: false,
+    gestureEnabled: false,
+  });
   useEffect(() => {
     const fetchData = async () => {
       try {

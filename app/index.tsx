@@ -11,7 +11,7 @@ import {
 import QuranIcon from '@/assets/icons/QuranIcon';
 import { ActivityIndicator, TextInput } from 'react-native-paper';
 import { saveData } from '@/utils/saveData';
-import { useNavigation, useRouter } from 'expo-router';
+import { useNavigation } from 'expo-router';
 import { NativeStackNavigationProp } from 'react-native-screens/lib/typescript/native-stack/types';
 
 const backgroundImg = require('@/assets/images/login-background.png');
@@ -32,6 +32,7 @@ export default function introScreen() {
       setCLicked(true);
       await saveData('username', username);
       navigation.navigate('(tabs)');
+      navigation.replace('(tabs)');
     } catch (error) {
       Alert.alert(
         'Gagal menyimpan data',
