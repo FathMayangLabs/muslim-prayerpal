@@ -12,13 +12,15 @@ import 'dayjs/locale/id';
 import ClockIcon from '@/assets/ClockIcon';
 import ArrowIcon from '@/assets/icons/ArrowIcon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Switch } from 'react-native-paper';
+import { ActivityIndicator, Switch } from 'react-native-paper';
 import { useDailyPrayerSchedule } from '@/hooks/useDailyPrayerSchedule';
 import {
   requestNotificationPermission,
   schedulePrayerNotifications,
   cancelSpecificPrayerNotifications,
 } from '@/utils/notificationService';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useUserLocation } from '@/hooks/useUserLocation';
 
 const { width } = Dimensions.get('window');
 const SIZE = width * 0.9;
@@ -39,9 +41,11 @@ const defaultSettings: UserSettings = {
 
 const PrayerSchedule = () => {
   const [timer, setTimer] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const index = useRef(new Animated.Value(0)).current;
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
   const prayerTimes = useDailyPrayerSchedule();
+  const locationNames = useUserLocation();
 
   const interpolated = {
     inputRange: [0, 360],
@@ -57,17 +61,38 @@ const PrayerSchedule = () => {
 
   useEffect(() => {
     (async () => {
-      const storedSettings = JSON.parse(
-        (await AsyncStorage.getItem('userSettings')) || '{}',
-      );
-      setSettings(storedSettings || defaultSettings);
+      let userSettings: UserSettings | null = null;
 
-      const hasPermission = await requestNotificationPermission();
-      if (hasPermission) {
-        await schedulePrayerNotifications(prayerTimes, storedSettings);
+      // Load settings from AsyncStorage
+      const storedSettings = await AsyncStorage.getItem('userSettings');
+      if (storedSettings) {
+        userSettings = JSON.parse(storedSettings) as UserSettings;
+        setSettings(userSettings);
+      } else {
+        // Set default settings if none exist
+        userSettings = defaultSettings;
+        setSettings(defaultSettings);
+        await AsyncStorage.setItem(
+          'userSettings',
+          JSON.stringify(defaultSettings),
+        );
       }
+
+      // Request notification permission
+      const hasPermission = await requestNotificationPermission();
+      if (!hasPermission) {
+        console.warn('Notification permissions not granted.');
+        return;
+      }
+
+      const delay = (ms: number) =>
+        new Promise((resolve) => setTimeout(resolve, ms));
+
+      await delay(4500);
+
+      setIsLoading(false);
     })();
-  }, []);
+  }, [prayerTimes]); // Ensure this effect runs when `prayerTimes` updates
 
   const toggleSwitch = async (prayer: PrayerNames) => {
     const updatedSettings = { ...settings, [prayer]: !settings[prayer] };
@@ -104,7 +129,8 @@ const PrayerSchedule = () => {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 mt-6">
+    <SafeAreaView className="flex-1 flex mt-6">
+      <Text className="font-bold text-3xl mt-[10%] mx-[4%]">Fard Prayer</Text>
       <View className="flex items-center h-1/2 justify-center">
         <Animated.View style={[styles.mover, transformHours]}>
           <ArrowIcon
@@ -121,32 +147,53 @@ const PrayerSchedule = () => {
         </View>
 
         <ClockIcon className="absolute z-10 w-4/6 h-4/6" />
+        <LinearGradient
+          colors={['transparent', '#39A7FF']}
+          start={{ x: -0.9, y: 0 }}
+          end={{ x: 0.6, y: 1 }}
+          style={styles.clockCircle}
+          className="rounded-full"
+        />
         <View className="absolute z-0 w-4/6 aspect-square bg-white rounded-full shadow-[inset_10px_10px_20px_10px_rgba(0,0,0,0.3)]" />
       </View>
-      <View>
-        <Text>Select Prayers for Notifications:</Text>
-        {prayerTimes &&
-          (Object.keys(prayerTimes) as PrayerNames[]).map((prayerName) => (
-            <View
-              key={prayerName}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingVertical: 8,
-              }}
-            >
-              <Text style={{ flex: 1 }}>{prayerTimes[prayerName].name}</Text>
-              <Text style={{ flex: 1, textAlign: 'center' }}>
-                {prayerTimes[prayerName].time}
-              </Text>
-              <Switch
-                value={!!settings[prayerName]}
-                onValueChange={() => toggleSwitch(prayerName)}
-              />
-            </View>
-          ))}
+      <View className="flex flex-row ml-[4%] mb-[5%]">
+        <Text style={styles.locationNamesText}>{locationNames?.desa}, </Text>
+        <Text style={styles.locationNamesText}>{locationNames?.kabkot}</Text>
       </View>
+      {isLoading ? (
+        <>
+          <ActivityIndicator animating={true} size={'large'} color="#39A7FF" />
+        </>
+      ) : (
+        <>
+          <View className="mx-[10%]">
+            {prayerTimes &&
+              (Object.keys(prayerTimes) as PrayerNames[]).map((prayerName) => (
+                <View
+                  key={prayerName}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingVertical: 8,
+                  }}
+                >
+                  <Text style={styles.prayerNameText}>
+                    {prayerTimes[prayerName].name}
+                  </Text>
+                  <Text style={styles.prayerTimeText}>
+                    {prayerTimes[prayerName].time}
+                  </Text>
+                  <Switch
+                    value={settings[prayerName] ?? true}
+                    onValueChange={() => toggleSwitch(prayerName)}
+                    color="#39A7FF"
+                  />
+                </View>
+              ))}
+          </View>
+        </>
+      )}
     </SafeAreaView>
   );
 };
@@ -162,6 +209,12 @@ const styles = StyleSheet.create({
     borderRadius: SIZE / 2,
     alignItems: 'center',
     justifyContent: 'flex-start',
+  },
+  clockCircle: {
+    zIndex: 0,
+    position: 'absolute',
+    width: ' 72%',
+    height: ' 72%',
   },
   arrow: {
     position: 'absolute',
@@ -180,5 +233,20 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 14,
     color: '#666',
+  },
+  prayerNameText: {
+    flex: 1,
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  prayerTimeText: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: 'semibold',
+    textAlign: 'center',
+  },
+  locationNamesText: {
+    fontSize: 20,
+    textAlign: 'center',
   },
 });

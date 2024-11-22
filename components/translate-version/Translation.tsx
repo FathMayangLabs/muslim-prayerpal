@@ -70,7 +70,7 @@ const Translation = memo(
             </View>
           )}
           initialNumToRender={7}
-          maxToRenderPerBatch={10}
+          maxToRenderPerBatch={25}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={{
             viewAreaCoveragePercentThreshold: 50,

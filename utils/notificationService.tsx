@@ -37,16 +37,37 @@ export async function schedulePrayerNotifications(
   // Cancel notifications based on user settings
   await cancelSpecificPrayerNotifications(userSettings);
 
-  const notificationIds: { [key in PrayerNames]?: string } = {};
+  // Add a delay to ensure prayerTimes is available
+  const delay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    if (!prayerTimes) {
+      console.warn(
+        `Attempt ${attempt}: prayerTimes is not available, retrying...`,
+      );
+      await delay(2000); // Wait for 1 second before retrying
+    } else {
+      break;
+    }
+  }
 
   if (!prayerTimes) {
     console.warn('prayerTimes is not available');
     return;
   }
 
-  for (const prayer in userSettings) {
-    const prayerName = prayer as PrayerNames;
+  // Validate prayerTimes keys
+  const validPrayers: PrayerNames[] = [
+    'Fajr',
+    'Dhuhr',
+    'Asr',
+    'Maghrib',
+    'Isha',
+  ];
+  const notificationIds: { [key in PrayerNames]?: string } = {};
 
+  for (const prayerName of validPrayers) {
     if (userSettings[prayerName]) {
       const prayerTime = prayerTimes[prayerName];
 
@@ -58,30 +79,32 @@ export async function schedulePrayerNotifications(
           .second(0)
           .toDate();
 
-        const id = await Notifications.scheduleNotificationAsync({
-          content: {
-            title: `${prayerName} Prayer Time`,
-            body: `It's time for ${prayerName} prayer.`,
-            sound: true,
-          },
-          trigger: notificationTime,
-        });
+        try {
+          const id = await Notifications.scheduleNotificationAsync({
+            content: {
+              title: `${prayerName} Prayer Time`,
+              body: `It's time for ${prayerName} prayer.`,
+              sound: true,
+            },
+            trigger: notificationTime,
+          });
 
-        notificationIds[prayerName] = id;
+          notificationIds[prayerName] = id;
+        } catch (error) {
+          console.error(
+            `Failed to schedule notification for ${prayerName}:`,
+            error,
+          );
+        }
       } else {
         console.warn(`Prayer time for ${prayerName} is not available`);
       }
     }
   }
-
-  await AsyncStorage.setItem(
-    'scheduledNotifications',
-    JSON.stringify(notificationIds),
-  );
 }
 
 export async function cancelSpecificPrayerNotifications(
-  userSettings: UserSettings,
+  userSettings: UserSettings | null,
 ) {
   const storedIds = await AsyncStorage.getItem('scheduledNotifications');
   const notificationIds: { [key in PrayerNames]?: string } = storedIds

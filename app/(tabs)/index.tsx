@@ -58,10 +58,13 @@ export default function Home() {
   const [lastRead, setLastRead] = useState('Al-Fatihah');
   const navigation = useNavigation();
 
-  navigation.setOptions({
-    headerBackVisible: false,
-    gestureEnabled: false,
-  });
+  useEffect(() => {
+    navigation.setOptions({
+      headerBackVisible: false,
+      gestureEnabled: false,
+    });
+  }, [navigation]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {

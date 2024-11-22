@@ -43,6 +43,10 @@ async function getPrayerSchedule(
     }
   } catch (error) {
     console.error('Error fetching prayer times:', error);
+    console.error(
+      `Fetching prayer times from: ${PRAYER_API_URL}/${date}?latitude=${latitude}&longitude=${longitude}&method=2`,
+    );
+
     return null;
   }
 }

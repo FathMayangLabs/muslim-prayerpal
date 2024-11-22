@@ -31,7 +31,7 @@ export default function introScreen() {
     try {
       setCLicked(true);
       await saveData('username', username);
-      navigation.navigate('(tabs)');
+      // navigation.navigate('(tabs)');
       navigation.replace('(tabs)');
     } catch (error) {
       Alert.alert(

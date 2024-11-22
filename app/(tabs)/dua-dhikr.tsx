@@ -1,14 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native';
 import React from 'react';
 
-const test2 = () => {
+const DuaDhikr = () => {
   return (
     <View>
-      <Text>test2</Text>
+      <Text>dua-dhikr</Text>
     </View>
   );
 };
 
-export default test2;
+export default DuaDhikr;
 
 const styles = StyleSheet.create({});

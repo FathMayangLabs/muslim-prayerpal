@@ -46,7 +46,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="test2"
+        name="dua-dhikr"
         options={{
           tabBarIcon: ({ focused }) => (
             <HandDoa color={focused ? '#246ba4' : '#3C495E'} />
@@ -63,6 +63,13 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="detail"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="duadetails"
         options={{
           href: null,
           tabBarStyle: { display: 'none' },

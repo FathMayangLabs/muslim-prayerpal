@@ -1,7 +1,7 @@
 import BookIcon from '@/assets/icons/BookIcon';
 import QuranIcon from '@/assets/icons/QuranIcon';
 import Translation from '@/components/translate-version/Translation';
-import { Surah, SurahData } from '@/constants/types';
+import { Surah } from '@/constants/types';
 import { getAllSurah } from '@/utils/utility';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
@@ -20,7 +20,6 @@ export default function TabTwoScreen() {
   const [lastRead, setLastRead] = useState<string>('Al-Fatihah');
   const [lastReadIndex, setLastReadIndex] = useState<number>(1);
 
-  const lastReadAyat = useRef<number | null>(null);
   const flatListRef = useRef<FlatList>(null); // Reference to FlatList
 
   const fetchData = async () => {
@@ -47,9 +46,9 @@ export default function TabTwoScreen() {
       visibleItems.forEach((visible) => {
         const item = visible.item;
 
-        if (item && item.nomorAyat && item.namaLatin) {
-          const ayatNumber = item.ayatNumber;
-          const surahName = item.surahName;
+        if (item && item.nomor && item.namaLatin) {
+          const ayatNumber = item.nomor;
+          const surahName = item.namaLatih;
 
           handleLastReadUpdate(surahName, ayatNumber);
         } else {
@@ -112,8 +111,8 @@ export default function TabTwoScreen() {
               onLastReadUpdate={handleLastReadUpdate}
             />
           )}
-          initialNumToRender={10}
-          maxToRenderPerBatch={10}
+          initialNumToRender={2}
+          maxToRenderPerBatch={3}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={{
             itemVisiblePercentThreshold: 50,
