@@ -22,6 +22,7 @@ async function getCategory(): Promise<FitraHiveCategory[]> {
     const rawDuaCategory: FitraHiveCategories[] = response.data.data;
 
     const categoriesDetail = rawDuaCategory.map((category) => ({
+      name: category.name,
       slug: category.slug,
       total: category.total,
     }));
@@ -29,25 +30,6 @@ async function getCategory(): Promise<FitraHiveCategory[]> {
     return categoriesDetail;
   } catch (error) {
     console.error('Error fetching dua category:', error);
-    throw error;
-  }
-}
-
-export async function getCategoryDetails(slug: string) {
-  try {
-    const response = await axios.get<FitraHiveSubCategoryApiResponse>(
-      `${DUADHIKR_API_URL}/${slug}`,
-      {
-        headers: {
-          'Accept-Language': 'id',
-        },
-      },
-    );
-
-    const data: FitraHiveSubCategories[] = response.data.data;
-    return data;
-  } catch (error) {
-    console.error('Error fetching dua category details:', error);
     throw error;
   }
 }

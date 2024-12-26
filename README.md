@@ -1,27 +1,57 @@
-# Welcome to your Expo app 👋
+# Muslim PrayerPal
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Muslim PrayerPal is a mobile application designed to assist Muslims with their daily prayers and religious practices. The app provides a variety of features to help users stay connected with their faith.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Prayer Times**: Get accurate prayer times based on your location.
+- **Quran Reading**: Read the Quran with translations and tafsir.
+- **Dua and Dzikr**: Access a collection of daily duas and dzikrs.
+- **Notifications**: Receive reminders for prayer times.
+
+## Screenshots
+
+![Home Screen](screenshots/home.png)
+![Prayer Times](screenshots/prayer_times.png)
+![Quran Reading](screenshots/quran_reading.png)
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js
+- Yarn or npm
+- Expo CLI
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/your-username/muslim-prayerpal.git
+   cd muslim-prayerpal
+   ```
+
+2. Install dependencies
 
    ```bash
    yarn install
    ```
 
-2. Start the app
+3. Start the app
 
    ```bash
    yarn start
    ```
-*make sure you have emulator or device started
 
-In the output, you'll find options to open the app in a
+### Contributing
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+We welcome contributions to Muslim PrayerPal! If you have any ideas, suggestions, or bug reports, please open an issue or submit a pull request.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### License
+
+Muslim PrayerPal is licensed under the MIT license
+
+### Contact
+
+For any inquiries or support, please contact us at support@muslimprayerpal.com.

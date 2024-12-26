@@ -5,7 +5,15 @@ import { Surah } from '@/constants/types';
 import { getAllSurah } from '@/utils/utility';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from 'react';
+import { throttle } from 'lodash';
+
 import {
   FlatList,
   SafeAreaView,
@@ -22,48 +30,48 @@ export default function TabTwoScreen() {
 
   const flatListRef = useRef<FlatList>(null); // Reference to FlatList
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const data = await getAllSurah();
       setSurahData(data);
     } catch (error) {
       console.error('Error fetching surah data:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
-  const handleLastReadUpdate = (surahName: string, ayatNumber: number) => {
-    setLastRead(surahName);
-    setLastReadIndex(ayatNumber);
-  };
-
-  const onViewableItemsChanged = useCallback(
-    (info: { changed: ViewToken[] }): void => {
-      const visibleItems = info.changed.filter((entry) => entry.isViewable);
-      visibleItems.forEach((visible) => {
-        const item = visible.item;
-
-        if (item && item.nomor && item.namaLatin) {
-          const ayatNumber = item.nomor;
-          const surahName = item.namaLatih;
-
-          handleLastReadUpdate(surahName, ayatNumber);
-        } else {
-          console.warn(
-            'Viewable item does not have the expected structure:',
-            visible.item,
-          );
-        }
-      });
+  const handleLastReadUpdate = useCallback(
+    (surahName: string, ayatNumber: number) => {
+      setLastRead(surahName);
+      setLastReadIndex(ayatNumber);
     },
     [],
   );
 
+  const throttledUpdate = useCallback(
+    throttle((surahName: string, ayatNumber: number) => {
+      handleLastReadUpdate(surahName, ayatNumber);
+    }, 1000),
+    [handleLastReadUpdate],
+  );
+
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (viewableItems.length > 0) {
+        const middleItem = viewableItems[Math.floor(viewableItems.length / 2)];
+        if (middleItem?.item?.nomor && middleItem?.item?.namaLatin) {
+          throttledUpdate(middleItem.item.namaLatin, middleItem.item.nomor);
+        }
+      }
+    },
+    [throttledUpdate],
+  );
+
   // Function to scroll to last read Ayat
-  const scrollToLastRead = () => {
+  const scrollToLastRead = useCallback(() => {
     if (flatListRef.current && lastReadIndex > 0) {
       flatListRef.current.scrollToIndex({
         index: lastReadIndex - 1, // Adjust for zero-based indexing
@@ -71,7 +79,9 @@ export default function TabTwoScreen() {
         viewPosition: 0.5, // Center the last read Ayat on screen
       });
     }
-  };
+  }, [lastReadIndex]);
+
+  const memoizedSurahData = useMemo(() => surahData, [surahData]);
 
   return (
     <>
@@ -103,7 +113,7 @@ export default function TabTwoScreen() {
         </TouchableOpacity>
         <FlatList
           ref={flatListRef} // Attach FlatList ref
-          data={surahData}
+          data={memoizedSurahData}
           keyExtractor={(item) => item.nomor.toString()}
           renderItem={({ item }) => (
             <Translation
@@ -111,12 +121,21 @@ export default function TabTwoScreen() {
               onLastReadUpdate={handleLastReadUpdate}
             />
           )}
-          initialNumToRender={2}
-          maxToRenderPerBatch={3}
+          initialNumToRender={5}
+          maxToRenderPerBatch={10}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={{
             itemVisiblePercentThreshold: 50,
             minimumViewTime: 3000,
+          }}
+          onScrollToIndexFailed={(info) => {
+            const wait = new Promise((resolve) => setTimeout(resolve, 500));
+            wait.then(() => {
+              flatListRef.current?.scrollToIndex({
+                index: info.index,
+                animated: true,
+              });
+            });
           }}
         />
       </SafeAreaView>

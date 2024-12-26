@@ -45,6 +45,7 @@ export type FitraHiveContent = {
 };
 
 export type FitraHiveCategory = {
+  name: string;
   slug: string;
   total: number;
 };
